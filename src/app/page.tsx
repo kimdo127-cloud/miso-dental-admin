@@ -4,6 +4,13 @@ import { useRouter } from "next/navigation";
 import { api, auth, Staff } from "@/lib/api";
 import { Button, ErrorText, input } from "@/components/ui";
 
+// 시드 데이터의 시연 계정 (backend/src/db/seed.ts, 비밀번호 miso1234)
+const TEST_ACCOUNTS = [
+  { label: "데스크", sub: "한실장 · 문의 답변", email: "desk1@miso.test" },
+  { label: "원장", sub: "박대표 · 진료 기록", email: "ceo@miso.test" },
+  { label: "위생사", sub: "정위생 · 예약 · 담당 환자", email: "hyg1@miso.test" },
+];
+
 // A1 직원 로그인
 export default function Login() {
   const router = useRouter();
@@ -14,7 +21,10 @@ export default function Login() {
   useEffect(() => { if (auth.token()) router.replace("/dashboard"); }, [router]);
 
   async function submit(e: React.FormEvent) {
-    e.preventDefault(); setBusy(true); setErr("");
+    e.preventDefault(); await doLogin(email, pw);
+  }
+  async function doLogin(email: string, pw: string) {
+    setBusy(true); setErr("");
     try {
       const r = await api<{ token: string; staff: Staff }>("/login", { body: { email, password: pw } });
       auth.set(r.token); router.replace("/dashboard");
@@ -32,7 +42,19 @@ export default function Login() {
           <ErrorText>{err}</ErrorText>
           <Button className="h-12 w-full" disabled={busy || !email || !pw}>{busy ? "확인 중..." : "로그인"}</Button>
         </div>
-        <p className="mt-6 rounded-s bg-grey-50 p-3 text-[12px] leading-relaxed text-grey-500">시연용 계정 (비밀번호 miso1234)<br />데스크 desk1@miso.test · 원장 ceo@miso.test · 위생사 hyg1@miso.test</p>
+        {/* 테스트용: 시연 계정으로 바로 로그인 (역할별) */}
+        <div className="mt-8 border-t border-grey-200 pt-6">
+          <p className="mb-3 text-[12px] font-semibold text-grey-500">테스트 계정으로 로그인</p>
+          <div className="grid grid-cols-3 gap-2">
+            {TEST_ACCOUNTS.map((t) => (
+              <button key={t.email} type="button" disabled={busy} onClick={() => doLogin(t.email, "miso1234")}
+                className="rounded-xl border border-grey-200 bg-white px-2 py-3 text-center hover:bg-grey-50 disabled:opacity-40">
+                <span className="block text-[14px] font-semibold">{t.label}</span>
+                <span className="mt-0.5 block text-[11px] text-grey-500">{t.sub}</span>
+              </button>
+            ))}
+          </div>
+        </div>
       </form>
     </div>
   );
