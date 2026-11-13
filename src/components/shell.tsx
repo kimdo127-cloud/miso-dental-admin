@@ -24,7 +24,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
   const path = usePathname();
   const [me, setMe] = useState<Staff | null>(null);
   useEffect(() => {
-    if (!auth.token()) { router.replace("/"); return; }
+    if (!auth.token()) { router.replace("/?next=" + encodeURIComponent(window.location.pathname + window.location.search)); return; }
     api<Staff>("/me").then(setMe).catch(() => {});
   }, [router]);
   if (!me) return <div className="min-h-dvh bg-grey-100" />;

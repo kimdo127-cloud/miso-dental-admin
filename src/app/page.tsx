@@ -11,6 +11,8 @@ const TEST_ACCOUNTS = [
   { label: "위생사", sub: "정위생 · 예약 · 담당 환자", email: "hyg1@miso.test" },
 ];
 
+const nextPath = () => { const n = new URLSearchParams(window.location.search).get("next"); return n && n.startsWith("/") && !n.startsWith("//") ? n : null; };
+
 // A1 직원 로그인
 export default function Login() {
   const router = useRouter();
@@ -18,7 +20,7 @@ export default function Login() {
   const [pw, setPw] = useState("");
   const [err, setErr] = useState("");
   const [busy, setBusy] = useState(false);
-  useEffect(() => { if (auth.token()) router.replace("/dashboard"); }, [router]);
+  useEffect(() => { if (auth.token()) router.replace(nextPath() || "/dashboard"); }, [router]);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault(); await doLogin(email, pw);
@@ -27,7 +29,7 @@ export default function Login() {
     setBusy(true); setErr("");
     try {
       const r = await api<{ token: string; staff: Staff }>("/login", { body: { email, password: pw } });
-      auth.set(r.token); router.replace("/dashboard");
+      auth.set(r.token); router.replace(nextPath() || "/dashboard");
     } catch (e) { setErr((e as Error).message); } finally { setBusy(false); }
   }
 
